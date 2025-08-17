@@ -5,13 +5,15 @@
 }
 
 <h1 class="mb-4 fw-bold">Book Library</h1>
-
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-4">
     <div class="col">
-        <a asp-action="Create" class="card h-100 shadow-sm border-0 d-flex align-items-center justify-content-center text-decoration-none add-card">
+        <a href="javascript:void(0);"
+           onclick="openAddModal()"
+           class="card h-100 shadow-sm border-0 d-flex align-items-center justify-content-center text-decoration-none add-card">
             <div class="text-center">
                 <i class="bi bi-plus-circle" style="font-size: 3rem; color: #6c757d;"></i>
                 <p class="mt-2 text-muted">Add Book</p>
+
             </div>
         </a>
     </div>
@@ -23,13 +25,12 @@
 
                 <div class="book-actions">
                     <a href="javascript:void(0);"
-                                   class="action-btn"
-                                   title="Edit"
-                                   onclick="openEditModal('@book.BookId')">
+                       class="action-btn"
+                       title="Edit"
+                       onclick="openEditModal('@book.BookId')">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a asp-action="Details" asp-route-id="@book.BookId" class="action-btn" title="Details"/>
-
+                    <a asp-action="Details" asp-route-id="@book.BookId" class="action-btn" title="Details" />
                     <a asp-action="Delete" asp-route-id="@book.BookId" class="action-btn" title="Delete">
                         <i class="bi bi-trash"></i>
                     </a>
@@ -71,26 +72,49 @@
 
 @section Scripts {
     <script>
-            function openEditModal(bookId) {
-            fetch(`/Book/EditModal?id=${encodeURIComponent(bookId)}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error loading edit form.');
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    document.querySelector('#exampleModal .modal-content').innerHTML = html;
 
-                    // Show the Bootstrap modal (v5 API)
-                    let modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-                    modal.show();
-                })
-                .catch(error => {
-                    alert(error.message);
-                    console.error(error);
-                });
-        }
+        function openAddModal() {
+            fetch(`/Book/AddModal`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error loading add form.');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        document.querySelector('#exampleModal .modal-content').innerHTML = html;
+
+                        // Show the Bootstrap modal (v5 API)3
+                        let modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                        modal.show();
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                        console.error(error);
+                    });
+            }
+
+
+            function openEditModal(bookId) {
+                fetch(`/Book/EditModal?id=${encodeURIComponent(bookId)}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error loading edit form.');
+                        }
+                        return response.text();
+                    })
+                    .then(html => {
+                        document.querySelector('#exampleModal .modal-content').innerHTML = html;
+
+                        // Show the Bootstrap modal (v5 API)
+                        let modal = new bootstrap.Modal(document.getElementById('exampleModal'));
+                        modal.show();
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                        console.error(error);
+                    });
+            }
 
         function openDeleteModal(url, title) {
             $.ajax({
@@ -109,7 +133,7 @@
 
         document.addEventListener("submit", function (e) {
             const form = e.target;
-            if (form.matches("#editBookForm")) {
+            if (form.matches("#editBookForm") || form.matches("#addBookForm")) {
                 e.preventDefault();
                 const formData = new FormData(form);
                 fetch(form.action, {
