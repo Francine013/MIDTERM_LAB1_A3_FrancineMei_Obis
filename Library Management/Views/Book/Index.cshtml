@@ -13,7 +13,6 @@
             <div class="text-center">
                 <i class="bi bi-plus-circle" style="font-size: 3rem; color: #6c757d;"></i>
                 <p class="mt-2 text-muted">Add Book</p>
-
             </div>
         </a>
     </div>
@@ -30,8 +29,13 @@
                        onclick="openEditModal('@book.BookId')">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a asp-action="Details" asp-route-id="@book.BookId" class="action-btn" title="Details" />
-                    <a asp-action="Delete" asp-route-id="@book.BookId" class="action-btn" title="Delete">
+                    <a asp-action="Details" asp-route-id="@book.BookId" class="action-btn" title="Details">
+                        <i class="bi bi-info-circle"></i>
+                    </a>
+                    <a href="javascript:void(0);"
+                       class="action-btn"
+                       title="Delete"
+                       onclick="openDeleteModal('@Url.Action("DeleteModal", "Book", new { id = book.BookId })', 'Delete Book')">
                         <i class="bi bi-trash"></i>
                     </a>
                 </div>
@@ -55,66 +59,32 @@
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                ...
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
+            <!-- Modal content loaded dynamically -->
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-
         function openAddModal() {
             fetch(`/Book/AddModal`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error loading add form.');
-                        }
-                        return response.text();
-                    })
-                    .then(html => {
-                        document.querySelector('#exampleModal .modal-content').innerHTML = html;
+                .then(response => response.text())
+                .then(html => {
+                    document.querySelector('#exampleModal .modal-content').innerHTML = html;
+                    new bootstrap.Modal(document.getElementById('exampleModal')).show();
+                })
+                .catch(error => alert('Error loading add form.'));
+        }
 
-                        // Show the Bootstrap modal (v5 API)3
-                        let modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-                        modal.show();
-                    })
-                    .catch(error => {
-                        alert(error.message);
-                        console.error(error);
-                    });
-            }
-
-
-            function openEditModal(bookId) {
-                fetch(`/Book/EditModal?id=${encodeURIComponent(bookId)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error loading edit form.');
-                        }
-                        return response.text();
-                    })
-                    .then(html => {
-                        document.querySelector('#exampleModal .modal-content').innerHTML = html;
-
-                        // Show the Bootstrap modal (v5 API)
-                        let modal = new bootstrap.Modal(document.getElementById('exampleModal'));
-                        modal.show();
-                    })
-                    .catch(error => {
-                        alert(error.message);
-                        console.error(error);
-                    });
-            }
+        function openEditModal(bookId) {
+            fetch(`/Book/EditModal?id=${encodeURIComponent(bookId)}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.querySelector('#exampleModal .modal-content').innerHTML = html;
+                    new bootstrap.Modal(document.getElementById('exampleModal')).show();
+                })
+                .catch(error => alert('Error loading edit form.'));
+        }
 
         function openDeleteModal(url, title) {
             $.ajax({
@@ -126,29 +96,27 @@
                     $('#exampleModal').modal('show');
                 },
                 error: function () {
-                    alert('Error loading details.');
+                    alert('Error loading delete form.');
                 }
             });
         }
 
         document.addEventListener("submit", function (e) {
             const form = e.target;
-            if (form.matches("#editBookForm") || form.matches("#addBookForm")) {
+            if (form.matches("#editBookForm") || form.matches("#addBookForm") || form.matches("#deleteBookForm")) {
                 e.preventDefault();
                 const formData = new FormData(form);
                 fetch(form.action, {
                     method: form.method,
-                    body: new URLSearchParams(formData)
+                    body: new URLSearchParams(formData),
+                    headers: { 'RequestVerificationToken': form.querySelector('[name=__RequestVerificationToken]')?.value }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    location.reload();
+                    if (!response.ok) throw new Error('Network error');
+                    return response.text();
                 })
-                .catch(error => {
-                    alert('Error saving changes: ' + error.message);
-                });
+                .then(() => location.reload())
+                .catch(error => alert('Error: ' + error.message));
             }
         });
     </script>

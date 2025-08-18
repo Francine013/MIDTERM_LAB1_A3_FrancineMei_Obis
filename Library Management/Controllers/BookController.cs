@@ -55,24 +55,55 @@ namespace Library_Management.Controllers
             return Ok();
         }
 
+
+
+        [HttpGet]
         public IActionResult DeleteModal(Guid id)
         {
-            return PartialView("_DeletePartial");
+            var book = BookService.Instance.GetBookById(id);
+            if (book == null) return NotFound();
+
+            var vm = new BookListViewModel
+            {
+                BookId = book.BookId,
+                Title = book.Title,
+            };
+
+            return PartialView("_DeleteBookPartial", vm);
         }
 
-        [HttpDelete]
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(Guid id)
         {
-            // Assuming BookService has a method to delete the book
             BookService.Instance.DeleteBook(id);
-            return Ok();
+            return RedirectToAction("Index"); // NOT return Ok();
         }
-
         public IActionResult Details(Guid id)
         {
             var book = BookService.Instance.GetBooks().First(b => b.BookId == id);
             return View(book);
         }
+        public IActionResult AddCopyModal(Guid id)
+        {
+            var vm = new CopyBookViewModel { BookId = id };
+            return PartialView("_CopyBookPartial", vm);
+        }
+
+        [HttpPost]
+        public IActionResult AddCopy(CopyBookViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            BookService.Instance.AddBookCopy(model);
+
+            return RedirectToAction("Details", new { id = model.BookId });
+        }
+
+
 
 
     }

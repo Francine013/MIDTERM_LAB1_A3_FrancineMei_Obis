@@ -369,4 +369,24 @@ public class BookService
             return _instance;
         }
     }
+    public void AddBookCopy(CopyBookViewModel model)
+    {
+        ArgumentNullException.ThrowIfNull(model, nameof(model));
+
+        var book = _books.FirstOrDefault(b => b.Id == model.BookId)
+                   ?? throw new KeyNotFoundException("Book not found");
+
+        var newCopy = new BookCopy
+        {
+            Id = Guid.NewGuid(),
+            Book = book,
+            CoverImageUrl = model.CoverImageUrl,
+            Condition = model.Condition,
+            Source = model.Source,
+            AddedDate = DateTime.Now
+        };
+
+        _bookCopies.Add(newCopy);
+    }
+
 }
